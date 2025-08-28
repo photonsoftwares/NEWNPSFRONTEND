@@ -13,38 +13,57 @@ import {
   TrendingUp,
   Users
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthConext';
 
 export default function SurveyList() {
-  const [surveys, setSurveys] = useState([]);
+  // const [surveys, setSurveys] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+const { getAllSurveys, surveys } = useAuth();
 
-  useEffect(() => {
-    loadSurveys();
-  }, []);
-
-  const loadSurveys = async () => {
+useEffect(() => {
+  const fetchSurveys = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/v2/surveymgmt/listsurvey/all');
-      if (response.ok) {
-        const data = await response.json();
-        setSurveys(data.data?.surveys || []);
-      }
+      await getAllSurveys("6");
     } catch (error) {
-      console.error('Error loading surveys:', error);
+      console.error("Error fetching surveys:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredSurveys = surveys.filter(survey => {
-    const matchesSearch = survey.survey_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         survey.survey_code.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || survey.status.toLowerCase() === statusFilter.toLowerCase();
-    return matchesSearch && matchesStatus;
-  });
+  fetchSurveys(); // ✅ hamesha fetch kare
+}, []);
+
+  // const loadSurveys = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const response = await fetch('/v2/surveymgmt/listsurvey/all');
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       setSurveys(data.data?.surveys || []);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error loading surveys:', error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+const filteredSurveys = surveys.filter((survey) => {
+  const matchesSearch =
+    survey.surveyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    survey.surveyCode.toLowerCase().includes(searchTerm.toLowerCase());
+
+  const matchesStatus =
+    statusFilter === "all" ||
+    survey.status.toLowerCase() === statusFilter.toLowerCase();
+
+  return matchesSearch && matchesStatus;
+});
+
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
@@ -82,7 +101,7 @@ export default function SurveyList() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Link to="/admin" className="flex items-center text-gray-600 hover:text-gray-900 mr-6 transition-colors">
+              <Link to="/" className="flex items-center text-gray-600 hover:text-gray-900 mr-6 transition-colors">
                 <ArrowLeft className="mr-2 w-5 h-5" />
                 Back to Admin
               </Link>
@@ -248,12 +267,15 @@ export default function SurveyList() {
                       {survey.survey_name}
                     </h3>
                     <p className="text-sm text-gray-600 mb-3">
-                      Code: <span className="font-mono">{survey.survey_code}</span>
+                      Code: <span className="font-mono">{survey.surveyCode}</span>
                     </p>
-                    <p className="text-sm text-gray-600 mb-3">
-                      Category: <span className="font-medium">{survey.category_name}</span>
-                    </p>
-                    {survey.description && (
+                    {/* <p className="text-sm text-gray-600 mb-3">
+                      Category: <span className="font-medium">{survey.categoryId}</span>
+                    </p> */}
+                    {survey.surveyName && (
+                      <p className="text-sm text-gray-600 line-clamp-2">{survey.surveyName}</p>
+                    )}
+                      {survey.description && (
                       <p className="text-sm text-gray-600 line-clamp-2">{survey.description}</p>
                     )}
                   </div>

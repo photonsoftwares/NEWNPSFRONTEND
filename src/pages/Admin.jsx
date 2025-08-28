@@ -153,26 +153,17 @@ export default function Admin() {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Link 
-            to="/admin/surveys/new"
+            to="/admin/subQuestion/new"
             className="group bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 hover:border-blue-200"
           >
             <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <Plus className="w-6 h-6 text-blue-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Create Survey</h3>
-            <p className="text-gray-600 text-sm">Build new customer feedback surveys</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Create Sub Question</h3>
+            <p className="text-gray-600 text-sm">Manage survey Sub questions</p>
           </Link>
 
-          <Link 
-            to="/admin/surveys"
-            className="group bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 hover:border-green-200"
-          >
-            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <MessageSquare className="w-6 h-6 text-green-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Manage Surveys</h3>
-            <p className="text-gray-600 text-sm">View and edit existing surveys</p>
-          </Link>
+       
 
           <Link 
             to="/admin/questions"
@@ -184,7 +175,16 @@ export default function Admin() {
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Question Bank</h3>
             <p className="text-gray-600 text-sm">Manage survey questions and categories</p>
           </Link>
-
+   <Link 
+            to="/admin/surveys"
+            className="group bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 hover:border-green-200"
+          >
+            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <MessageSquare className="w-6 h-6 text-green-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Manage Surveys</h3>
+            <p className="text-gray-600 text-sm">View and edit existing surveys</p>
+          </Link>
           <Link 
             to="/admin/analytics"
             className="group bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 hover:border-orange-200"

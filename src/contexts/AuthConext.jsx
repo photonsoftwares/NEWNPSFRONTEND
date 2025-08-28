@@ -48,6 +48,8 @@ export const AuthProvider = ({ children }) => {
   };
   const [categories, setCategories] = useState([]);
   const [questions, setQuestions] = useState([]);
+  const [subQuestions, setSubQuestions] = useState([]);
+
 
   // Get Categories
   const getCategories = async () => {
@@ -62,7 +64,37 @@ export const AuthProvider = ({ children }) => {
     const getQuestions = async () => {
     try {
       const res = await DataService.getQuestions("6");
-      setQuestions(res.data?.questions || []);
+      setQuestions(res.data?.data || []);
+      return res.data;
+    } catch (err) {
+      console.error("Error loading questions", err);
+    }
+  };
+
+     const getSubQuestions = async (questionId) => {
+    try {
+      const res = await DataService.getSubQuestions(questionId);
+      setSubQuestions(res.data?.data || []);
+      return res.data;
+    } catch (err) {
+      console.error("Error loading questions", err);
+    }
+  };
+  const [surveys, setSurveys] = useState([]);
+  const getAllSurveys = async (saasId) => {
+    try {
+      const res = await DataService.getSurveys(saasId);
+      setSurveys(res.data?.data || []);
+      return res.data;
+    } catch (err) {
+      console.error("Error loading questions", err);
+    }
+  };
+  const [surveyDetails, setSurveyDetails] = useState(null);
+   const getSurveyById = async (surveyId) => {
+    try {
+      const res = await DataService.getSurveyById(surveyId);
+      setSurveyDetails(res.data?.data || null);
       return res.data;
     } catch (err) {
       console.error("Error loading questions", err);
@@ -71,13 +103,18 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider
       value={{
+        getSurveyById,
+        getAllSurveys,
+        surveys,
         createSurvey,
         submitFeedback,
         getSurveys,
           categories,
         questions,
+        subQuestions,
         getCategories,
         getQuestions,
+        getSubQuestions,
       }}
     >
       {children}

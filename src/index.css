@@ -5,3 +5,6 @@
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
+.swal2-container {
+  z-index: 20000 !important; /* higher than MUI modals/backdrop */
+}

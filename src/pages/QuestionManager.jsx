@@ -15,16 +15,15 @@ import { useAuth } from '../contexts/AuthConext';
 import DataService from "../services/requestApi";
 import Swal from 'sweetalert2';
 import CreateQuestionModal from '../modalCom/CreateQuestionModal';
-import UpdateQuestionModal from '../modalCom/UpdateQuestionModal';
 
-export default function ManageQuestions() {
+export default function QuestionManager() {
   const [questions, setQuestions] = useState([]);
   // const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(0);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [open, setOpen] = useState(false);
+
 const {getCategories,categories} = useAuth();
 const [newQuestion, setNewQuestion] = useState({
   question: '',
@@ -115,7 +114,7 @@ const [newQuestion, setNewQuestion] = useState({
     question.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
     question.questionId.toLowerCase().includes(searchTerm.toLowerCase())
   );
- const [selectedQuestion, setSelectedQuestion] = useState(null);
+
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
       case 'active':
@@ -160,7 +159,7 @@ const handleDelete = async (id) => {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Link to="/" className="flex items-center text-gray-600 hover:text-gray-900 mr-6 transition-colors">
+              <Link to="/admin" className="flex items-center text-gray-600 hover:text-gray-900 mr-6 transition-colors">
                 <ArrowLeft className="mr-2 w-5 h-5" />
                 Back to Admin
               </Link>
@@ -300,10 +299,7 @@ const handleDelete = async (id) => {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-3">
-                            <button       onClick={() => {
-                                setSelectedQuestion(question); // ✅ store row
-                                setOpen(true);
-                              }}  className="text-blue-600 hover:text-blue-700 transition-colors">
+                            <button className="text-blue-600 hover:text-blue-700 transition-colors">
                               <Edit className="w-4 h-4" />
                             </button>
                             <button     onClick={() => handleDelete(question.questionId)} className="text-red-600 hover:text-red-700 transition-colors">
@@ -331,11 +327,7 @@ const handleDelete = async (id) => {
     onSave={handleCreateQuestion}
   />
 )}
-   <UpdateQuestionModal
-        open={open}
-        handleClose={() => setOpen(false)}
-          question={selectedQuestion}
-      />
+
     </div>
   );
 }
