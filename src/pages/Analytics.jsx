@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { 
   ArrowLeft, 
@@ -12,6 +12,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { useAuth } from '../contexts/AuthConext';
 
 export default function Analytics() {
   const [searchParams] = useSearchParams();
@@ -23,6 +24,12 @@ export default function Analytics() {
   const [dateRange, setDateRange] = useState('7d');
 
   // Mock data - in real app this would come from API
+  const { getAllfeedbackweekly, feedbackweekly } = useAuth();
+
+  useEffect(() => {
+    getAllfeedbackweekly();
+  }, []);
+  console.log(feedbackweekly,"feedbackweekly");
   const mockStats = {
     totalResponses: 1247,
     averageRating: 8.3,
@@ -93,7 +100,7 @@ export default function Analytics() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Link to="/admin" className="flex items-center text-gray-600 hover:text-gray-900 mr-6 transition-colors">
+              <Link to="/" className="flex items-center text-gray-600 hover:text-gray-900 mr-6 transition-colors">
                 <ArrowLeft className="mr-2 w-5 h-5" />
                 Back to Admin
               </Link>
@@ -107,10 +114,10 @@ export default function Analytics() {
                 </div>
               </div>
             </div>
-            <button className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center">
+            {/* <button className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center">
               <Download className="mr-2 w-4 h-4" />
               Export Report
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
@@ -130,7 +137,7 @@ export default function Analytics() {
                 onChange={(e) => setSelectedSurvey(e.target.value)}
                 className="border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               >
-                <option value="all">All Surveys</option>
+                <option value="all">All feedback</option>
                 {surveys.map(survey => (
                   <option key={survey.id} value={survey.id}>
                     {survey.survey_name}
@@ -167,7 +174,7 @@ export default function Analytics() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Total Responses</p>
-                    <p className="text-3xl font-bold text-gray-900">{mockStats.totalResponses.toLocaleString()}</p>
+                    <p className="text-3xl font-bold text-gray-900">{feedbackweekly?.total.toLocaleString()}</p>
                     <p className="text-sm text-green-600 mt-1">+12% from last period</p>
                   </div>
                   <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -180,7 +187,7 @@ export default function Analytics() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Average Rating</p>
-                    <p className="text-3xl font-bold text-gray-900">{mockStats.averageRating}</p>
+                    <p className="text-3xl font-bold text-gray-900">{feedbackweekly?.detractor}</p>
                     <p className="text-sm text-green-600 mt-1">+0.3 from last period</p>
                   </div>
                   <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
@@ -193,7 +200,7 @@ export default function Analytics() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">NPS Score</p>
-                    <p className="text-3xl font-bold text-gray-900">+{mockStats.npsScore}</p>
+                    <p className="text-3xl font-bold text-gray-900">+{feedbackweekly?.promotor}</p>
                     <p className="text-sm text-green-600 mt-1">+5 from last period</p>
                   </div>
                   <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
@@ -206,7 +213,7 @@ export default function Analytics() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Response Rate</p>
-                    <p className="text-3xl font-bold text-gray-900">{mockStats.responseRate}%</p>
+                    <p className="text-3xl font-bold text-gray-900">{feedbackweekly?.passive}%</p>
                     <p className="text-sm text-green-600 mt-1">+8% from last period</p>
                   </div>
                   <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">

@@ -10,9 +10,10 @@ export default function CreateSurvey() {
   const [loading, setLoading] = useState(false);
 
   const { getCategories, categories } = useAuth();
+  const saasId = localStorage.getItem("saasId");
 
   const [surveyData, setSurveyData] = useState({
-    saasId: "6",
+    saasId: saasId,
     surveyName: "",
     description: "",
     startDate: "",

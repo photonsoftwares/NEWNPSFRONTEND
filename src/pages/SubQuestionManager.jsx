@@ -37,8 +37,6 @@ const [newQuestion, setNewQuestion] = useState({
   useEffect(() => {
     getQuestions();
   }, []);
-
- useEffect(() => {
   const fetchSubQuestions = async () => {
     if (questions.length > 0) {
       setLoading(true);
@@ -49,9 +47,9 @@ const [newQuestion, setNewQuestion] = useState({
       }
     }
   };
-
-  fetchSubQuestions();
-}, [questions, selectedQuestion]);
+  useEffect(() => {
+    fetchSubQuestions();
+  }, [questions, selectedQuestion]);
 
 const handleCreateQuestion = async () => {
   try {
@@ -299,6 +297,7 @@ const handleDelete = async (id) => {
         open={open}
         handleClose={() => setOpen(false)}
           subQuestion={selectedQuestion}
+          fetchSubQuestions={fetchSubQuestions}
       />
     </div>
   );

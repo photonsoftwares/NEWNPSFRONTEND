@@ -29,7 +29,7 @@ class DataService {
 
   // ✅ Submit Feedback
   submitFeedback(data) {
-    return http.post("/nps/feedback/submit", data);
+    return http.post("/feedback/add", data);
   }
 
   // 📊 Get Feedback Results
@@ -42,11 +42,14 @@ class DataService {
    getQuestion(saasId) {
     return http.get(`/Question/get-by-saasId/${saasId}`);
   }
+    getQuestionbyLevel(saasId, level) {
+    return http.get(`/Question/get-by-level/${saasId}/${level}`);
+  }
    deleteQuestion(Id) {
     return http.put(`/Question/delete/${Id}`);
   }
   updateQuestion(id, data) {
-    return http.put(`/question/update-question/${id}`, data);
+    return http.put(`/Question/update-question/${id}`, data);
   }
   // sub question
   createSubQuestion(data) {
@@ -67,6 +70,9 @@ class DataService {
   }
   getSurveyById(surveyId) {
     return http.get(`/survey/get-by-id/${surveyId}`);
+  }
+  getfeedbackSaaSId(saasId) {
+    return http.get(`/feedback/get-weekly-data/${saasId}`);
   }
 }
 

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { 
+import { useEffect, useState, useMemo } from 'react';
+import {
   CheckCircle,
   ArrowRight,
   Heart,
@@ -7,162 +7,195 @@ import {
   User,
   Store
 } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthConext';
+import RenderNPSRating from '../modalCom/RenderNPSRating';
+import RenderDropdown from '../modalCom/RenderDropdown';
 
 export default function Customer() {
-  // Static survey details
-  const survey = {
-    survey_name: "Feedback",
-    description: "Based on your shopping experience, how likely are you to recommend us to a friend or colleague?"
-  };
+  const { surveyId } = useParams();
 
-  // Static dummy questions with different types
-  const questions = [
-    { 
-      id: 1, 
-      question_name: "Based on your shopping experience, how likely are you to recommend us to a friend or colleague?", 
-      type: "nps",
-      weightage: 1 
-    },
-    { 
-      id: 2, 
-      question_name: "What is one thing we could have done differently to improve your experience?", 
-      type: "dropdown",
-      options: ["Product", "Staff Service", "Checkout Experience", "Store Ambience"],
-      subOptions: {
-        "Product": ["Size Avilablity", "Fashion Trend", "Fitting & Stitching"],
-        "Staff Service": ["Greeting", "Product Knowledge", "Helpfulness"],
-        "Checkout Experience": ["Queue Time", "Payment Options", "Receipt Process"],
-        "Store Ambience": ["Cleanliness", "Music", "Lighting", "Layout"]
-      },
-      weightage: 1 
-    },
-  ];
+  const {
+    getSurveyById,
+    getQuestions,
+    getSubQuestions,
+    submitSurveyAnswers,
+    submitFeedback,
+    surveyDetails,
+    getQuestionbyLevel ,
+    questions
+  } = useAuth();
 
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [ratings, setRatings] = useState({});
-  const [selectedOptions, setSelectedOptions] = useState({});
-  const [customerInfo, setCustomerInfo] = useState({ name: '', mobile: '', email: '' });
-  const [submitted, setSubmitted] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [showForm, setShowForm] = useState(false);
+  const [survey, setSurvey] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
-  const handleRatingChange = (questionId, rating) => {
-    setRatings(prev => ({ ...prev, [questionId]: rating }));
-  };
-
-  const handleDropdownChange = (questionId, category, subOption = null) => {
-    setSelectedOptions(prev => ({
-      ...prev,
-      [questionId]: { category, subOption: subOption || undefined }
-    }));
-  };
-
-  const nextQuestion = () => {
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-    } else {
-      setShowForm(true);
-    }
-  };
-
-  const submitFeedback = () => {
-    setSubmitting(true);
-    setTimeout(() => {
-      setSubmitted(true);
-      setSubmitting(false);
-    }, 1000);
-  };
-
-  const renderNPSRating = (questionId, currentRating) => (
-    <div className="mb-8">
-      <div className="flex flex-wrap items-center justify-center gap-3 mb-4">
-        {[0,1,2,3,4,5,6,7,8,9,10].map(rating => (
-          <button
-            key={rating}
-            onClick={() => handleRatingChange(questionId, rating)}
-            className={`w-12 h-12 rounded-full transition-all duration-200 flex items-center justify-center text-lg font-bold border-2 ${
-              rating === currentRating
-                ? rating <= 3 
-                  ? 'bg-red-500 border-red-600 text-white scale-110 shadow-lg'
-                  : rating <= 6
-                  ? 'bg-yellow-500 border-yellow-600 text-white scale-110 shadow-lg'
-                  : 'bg-green-500 border-green-600 text-white scale-110 shadow-lg'
-                : rating <= 3
-                ? 'border-red-300 text-red-500 hover:bg-red-50'
-                : rating <= 6
-                ? 'border-yellow-300 text-yellow-600 hover:bg-yellow-50'
-                : 'border-green-300 text-green-600 hover:bg-green-50'
-            }`}
-          >
-            {rating}
-          </button>
-        ))}
-      </div>
-      <div className="flex justify-between text-sm text-gray-500 px-2">
-        <span>0 (least likely)</span>
-        <span>10 (most likely)</span>
-      </div>
-    </div>
+  // Static flow: Step 1 = NPS, Step 2 = dropdown (expand/collapse list from API)
+  const steps = useMemo(
+    () => [
+      { id: 1, type: 'nps', title: 'How likely are you to recommend us?' },
+      { id: 2, type: 'dropdown', title: 'Tell us what we can improve' }
+    ],
+    []
   );
 
-  const renderDropdown = (questionId) => {
-    const question = questions.find(q => q.id === questionId);
-    const selected = selectedOptions[questionId];
-    
-    if (!question || !question.options) return null;
-    
-    return (
-      <div className="mb-8 space-y-4">
-        {question.options.map((option) => (
-          <div key={option} className="border border-gray-200 rounded-lg overflow-hidden">
-            <button
-              onClick={() => {
-                if (selected?.category === option && !selected.subOption) {
-                  setSelectedOptions(prev => {
-                    const newState = { ...prev };
-                    delete newState[questionId];
-                    return newState;
-                  });
-                } else {
-                  handleDropdownChange(questionId, option);
-                }
-              }}
-              className={`w-full flex items-center justify-between p-4 text-left transition-colors ${
-                selected?.category === option 
-                  ? 'bg-blue-50 border-blue-200' 
-                  : 'hover:bg-gray-50'
-              }`}
-            >
-              <span className="font-medium text-gray-900">{option}</span>
-              <ChevronDown 
-                className={`w-5 h-5 text-gray-400 transition-transform ${
-                  selected?.category === option ? 'rotate-180' : ''
-                }`} 
-              />
-            </button>
-            
-            {selected?.category === option && question.subOptions?.[option] && (
-              <div className="bg-gray-50 border-t border-gray-200">
-                {question.subOptions[option].map(subOption => (
-                  <button
-                    key={subOption}
-                    onClick={() => handleDropdownChange(questionId, option, subOption)}
-                    className={`w-full text-left p-3 pl-8 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0 ${
-                      selected?.subOption === subOption 
-                        ? 'bg-blue-100 text-blue-800 font-medium' 
-                        : 'text-gray-700'
-                    }`}
-                  >
-                    {subOption}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    );
+  const [currentStepIdx, setCurrentStepIdx] = useState(0);
+  const currentStep = steps[currentStepIdx];
+
+  // NPS ratings (allow 0)
+  const [ratings, setRatings] = useState({}); // { [stepId]: number }
+  const handleRatingChange = (stepId, rating) => {
+    setRatings(prev => ({ ...prev, [stepId]: rating }));
   };
+
+  // Dropdown state
+  const [expandedQuestion, setExpandedQuestion] = useState(null); // questionId
+  const [selectedSub, setSelectedSub] = useState({}); // { [questionId]: subQuestionId }
+  // Also keep a normalized selection payload for API
+  const [selectedOptions, setSelectedOptions] = useState({}); // { [questionId]: {questionId, subQuestionId} }
+
+  const [showForm, setShowForm] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [customerInfo, setCustomerInfo] = useState({ name: '', mobile: '', email: '' });
+
+  // ---------- Load survey + questions + subQuestions ----------
+// ---------- Load survey + questions + subQuestions ----------
+useEffect(() => {
+  if (!surveyId) return;
+  getSurveyById(surveyId);
+  // 👇 dependency array should ONLY have surveyId
+}, [surveyId]);
+
+ useEffect(() => {
+  if (surveyDetails?.saasId) {
+    getQuestionbyLevel(surveyDetails?.saasId, ratings[1]);
+  }
+}, [surveyDetails?.saasId, ratings[1]]);
+
+  // ---------- UI helpers ----------
+
+
+  // Handle sub-question selection
+const handleSubSelect = (qId, subId, qName, subText) => {
+  setSelectedSub(prev => ({
+    ...prev,
+    [qId]: {
+      questionId: qId,
+      questionName: qName,       // ✅ question text
+      subQuestionId: subId,
+      subQuestionName: subText   // ✅ sub-question text
+    }
+  }));
+
+  setSelectedOptions(prev => ({
+    ...prev,
+    [qId]: {
+      questionId: qId,
+      questionName: qName,
+      subQuestionId: subId,
+      subQuestionName: subText
+    }
+  }));
+};
+
+
+  // Expand/collapse dropdown renderer (uses API-loaded survey.questions)
+
+  // ---------- Validation + Next flow ----------
+ // ---------- Validation + Next flow ----------
+const isNextDisabled = useMemo(() => {
+  if (currentStep?.type === 'nps') {
+    return ratings[currentStep.id] === undefined;
+  }
+  if (currentStep?.type === 'dropdown') {
+    return Object.keys(selectedOptions).length === 0;
+  }
+  return false;
+}, [currentStep, ratings, selectedOptions]);
+
+const nextStep = async () => {
+  try {
+    if (currentStep?.type === 'nps') {
+      if (typeof submitSurveyAnswers === 'function') {
+        await submitSurveyAnswers({
+          surveyId,
+          type: 'nps',
+          rating: ratings[currentStep.id]
+        });
+      }
+    } else if (currentStep?.type === 'dropdown') {
+      if (typeof submitSurveyAnswers === 'function') {
+        const answers = Object.values(selectedOptions);
+        await submitSurveyAnswers({
+          surveyId,
+          type: 'subSelections',
+          answers
+        });
+      }
+    }
+  } catch (e) {
+    console.error('Failed to submit step answers (continuing flow):', e);
+  }
+
+  // Flow control
+  if (currentStepIdx < steps.length - 1) {
+    setCurrentStepIdx(i => i + 1);
+  } else {
+    // Agar rating < 7 toh customer info lena hai
+    if ((ratings[1] ?? 0) < 7) {
+      setShowForm(true);
+    } else {
+      // Rating >= 7 → direct submit
+      handleSubmitFeedback();
+    }
+  }
+};
+
+  const saasId = localStorage.getItem("saasId");
+
+  // ---------- Final submit (customer details) ----------
+const handleSubmitFeedback = async () => {
+  if (!surveyId) {
+    Swal.fire("Error", "Survey not loaded properly", "error");
+    return;
+  }
+
+  const feedbackData = {
+    saasId: surveyDetails?.saasId || saasId,
+    message: "Great service, very satisfied!", // TODO: Textarea se value lo
+    surveyId: Number(surveyId),
+    surveyName: surveyDetails?.surveyName || "",
+    categoryId: surveyDetails?.categoryId || "",
+    categoryName: surveyDetails?.categoryName || "",
+    storeName: surveyDetails?.storeName || "",
+    customerName: customerInfo.name,
+    customerMobile: customerInfo.mobile,
+    customerEmail: customerInfo.email,
+    question: selectedSub?.[expandedQuestion]?.questionName || "",
+    subQuestion: selectedSub?.[expandedQuestion]?.subQuestionName || "",
+    feedbackDate: new Date().toISOString(),
+    ratingLevel: ratings[1] ?? 0,
+  };
+
+  try {
+    setSubmitting(true);
+    const res = await submitFeedback(feedbackData);
+
+    if (res?.status === true) {
+      setSubmitted(true); // ✅ show success screen
+    } else {
+      Swal.fire("Error", res?.message || "Failed to submit feedback", "error");
+    }
+  } catch (err) {
+    Swal.fire("Error", "Something went wrong", "error");
+  } finally {
+    setSubmitting(false);
+  }
+};
+
+
+
 
   if (submitted) {
     return (
@@ -179,26 +212,26 @@ export default function Customer() {
     );
   }
 
-  const currentQuestionData = questions[currentQuestion];
-
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-md mx-auto bg-white min-h-screen">
-        
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-400 to-blue-500 text-white p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
-                <span className="text-white font-bold text-sm">K</span>
-              </div>
-              <span className="font-medium">Brand Name</span>
+                <div className="py-2 w-full flex justify-center items-center h-[65px] border-b border-accent-600 bg-accent-800">
+              <img
+                src="/src/assets/navlogo.png"
+                alt="Logo"
+                className="h-10 w-auto object-contain rounded-xl"
+              />
+            </div>
             </div>
             <User className="w-6 h-6" />
           </div>
           <div className="text-center mt-4">
             <h1 className="text-lg font-semibold">
-              {survey.survey_name}
+              {surveyDetails?.surveyName || 'Customer Satisfaction Survey'}
             </h1>
           </div>
         </div>
@@ -207,27 +240,50 @@ export default function Customer() {
         <div className="p-6">
           {!showForm ? (
             <div>
-              <div className="mb-8">
-                <p className="text-gray-800 text-base leading-relaxed">
-                  {currentQuestionData?.question_name}
-                </p>
-              </div>
+              {!!surveyDetails?.description && (
+                <div className="mb-8">
+                  <p className="text-gray-800 text-base leading-relaxed">
+                    {surveyDetails.description}
+                  </p>
+                </div>
+              )}
 
-              {currentQuestionData?.type === 'nps' && 
-                renderNPSRating(currentQuestionData.id, ratings[currentQuestionData.id])
-              }
+              {/* Step title (optional) */}
+              <h3 className="text-base font-semibold text-gray-800 mb-4">
+                {currentStep?.title}
+              </h3>
 
-              {currentQuestionData?.type === 'dropdown' && 
-                renderDropdown(currentQuestionData.id)
-              }
+              {/* Step Body */}
+              {currentStep?.type === "nps" && (
+                <RenderNPSRating
+                  stepId={currentStep.id}
+                  currentRating={ratings[currentStep.id]}
+                  onRatingChange={handleRatingChange}
+                />
+              )}
+
+              {currentStep?.type === "dropdown" && (
+                <RenderDropdown
+                  surveyObj={questions}
+                  expandedQuestion={expandedQuestion}
+                  setExpandedQuestion={setExpandedQuestion}
+                  selectedSub={selectedSub}
+                  handleSubSelect={handleSubSelect}
+                />
+              )}
 
               <div className="flex justify-end mt-8">
+                  {currentStepIdx > 0 && (
+    <button
+      onClick={() => setCurrentStepIdx(i => i - 1)}
+      className="flex items-center bg-transparent text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-50"
+    >
+      ← Previous
+    </button>
+  )}
                 <button
-                  onClick={nextQuestion}
-                  disabled={
-                    (currentQuestionData?.type === 'nps' && !ratings[currentQuestionData.id]) ||
-                    (currentQuestionData?.type === 'dropdown' && !selectedOptions[currentQuestionData.id])
-                  }
+                  onClick={nextStep}
+                  disabled={isNextDisabled}
                   className="flex items-center bg-transparent text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-50 disabled:opacity-50"
                 >
                   Next
@@ -265,7 +321,7 @@ export default function Customer() {
                     value={customerInfo.mobile}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, mobile: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="+91 9876543210"
+                    placeholder="9876543210"
                   />
                 </div>
 
@@ -291,11 +347,11 @@ export default function Customer() {
 
               <div className="flex justify-end">
                 <button
-                  onClick={submitFeedback}
-                  disabled={(!customerInfo.name || !customerInfo.mobile) && !customerInfo.email || submitting}
+                  onClick={handleSubmitFeedback}
+                  disabled={((!customerInfo.name || !customerInfo.mobile) && !customerInfo.email) || submitting}
                   className="flex items-center bg-transparent text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-50 disabled:opacity-50"
                 >
-                  {submitting ? "Processing..." : <>Proceed <ArrowRight className="ml-2 w-5 h-5" /></>}
+                  {submitting ? 'Processing...' : <>Proceed <ArrowRight className="ml-2 w-5 h-5" /></>}
                 </button>
               </div>
             </div>

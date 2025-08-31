@@ -26,9 +26,11 @@ export default function ManageQuestions() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [open, setOpen] = useState(false);
 const {getCategories,categories} = useAuth();
+  const saasId = localStorage.getItem("saasId");
+
 const [newQuestion, setNewQuestion] = useState({
   question: '',
-      saasId: "6",
+  saasId: saasId,
   question_code: '',
   category_id: 0,
   surveyId: "",
@@ -63,7 +65,7 @@ const [newQuestion, setNewQuestion] = useState({
       // if (!categoryId) return;
 
       // const response = await fetch(`/v2/surveymgmt/listquestions/${categoryId}/all`);
-       const response = await DataService.getQuestion("6");
+       const response = await DataService.getQuestion(saasId);
       if (response && response.status === 200 && response.data.status) {
       // set data from API
       setQuestions(response.data.data || []);
@@ -329,12 +331,14 @@ const handleDelete = async (id) => {
     categories={categories}
     onClose={() => setShowCreateModal(false)}
     onSave={handleCreateQuestion}
+    loadQuestions={loadQuestions}
   />
 )}
    <UpdateQuestionModal
         open={open}
         handleClose={() => setOpen(false)}
           question={selectedQuestion}
+          loadQuestions={loadQuestions}
       />
     </div>
   );

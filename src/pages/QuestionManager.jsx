@@ -25,9 +25,11 @@ export default function QuestionManager() {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
 const {getCategories,categories} = useAuth();
+  const saasId = localStorage.getItem("saasId");
+
 const [newQuestion, setNewQuestion] = useState({
   question: '',
-      saasId: "6",
+  saasId: saasId,
   question_code: '',
   category_id: 0,
   surveyId: "",
@@ -62,7 +64,7 @@ const [newQuestion, setNewQuestion] = useState({
       // if (!categoryId) return;
 
       // const response = await fetch(`/v2/surveymgmt/listquestions/${categoryId}/all`);
-       const response = await DataService.getQuestion("6");
+       const response = await DataService.getQuestion(saasId);
       if (response && response.status === 200 && response.data.status) {
       // set data from API
       setQuestions(response.data.data || []);

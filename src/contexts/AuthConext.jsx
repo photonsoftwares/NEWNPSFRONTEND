@@ -5,6 +5,8 @@ import Swal from "sweetalert2";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+    const saasId = localStorage.getItem("saasId");
+
   // Create Survey
   const createSurvey = async (surveyData) => {
     try {
@@ -54,7 +56,7 @@ export const AuthProvider = ({ children }) => {
   // Get Categories
   const getCategories = async () => {
     try {
-      const res = await DataService.getCategories("6");
+      const res = await DataService.getCategories(saasId);
       setCategories(res.data?.data || []);
       return res.data;
     } catch (err) {
@@ -63,7 +65,7 @@ export const AuthProvider = ({ children }) => {
   };
     const getQuestions = async () => {
     try {
-      const res = await DataService.getQuestions("6");
+      const res = await DataService.getQuestions(saasId);
       setQuestions(res.data?.data || []);
       return res.data;
     } catch (err) {
@@ -71,10 +73,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-     const getSubQuestions = async (questionId) => {
+ 
+     const getQuestionbyLevel = async (saasid ,questionId) => {
     try {
-      const res = await DataService.getSubQuestions(questionId);
-      setSubQuestions(res.data?.data || []);
+      const res = await DataService.getQuestionbyLevel(saasid, questionId);
+      setQuestions(res.data?.data || []);
       return res.data;
     } catch (err) {
       console.error("Error loading questions", err);
@@ -100,9 +103,33 @@ export const AuthProvider = ({ children }) => {
       console.error("Error loading questions", err);
     }
   };
+      const getSubQuestions = async (questionId) => {
+    try {
+      const res = await DataService.getSubQuestions(questionId);
+      setSubQuestions(res.data?.data || []);
+      return res.data;
+    } catch (err) {
+      console.error("Error loading questions", err);
+    }
+  };
+
+    const [feedbackweekly, setFeedbackWeekly] = useState(null);
+   const getAllfeedbackweekly = async () => {
+    try {
+      const res = await DataService.getfeedbackSaaSId(saasId);
+      setFeedbackWeekly(res.data?.data || null);
+      return res.data;
+    } catch (err) {
+      console.error("Error loading questions", err);
+    }
+  };
   return (
     <AuthContext.Provider
       value={{
+        getAllfeedbackweekly,
+        feedbackweekly,
+        surveyDetails,
+        getQuestionbyLevel,
         getSurveyById,
         getAllSurveys,
         surveys,

@@ -80,7 +80,8 @@ const loadSurvey = async (id) => {
 
 
   const copyToClipboard = () => {
-    const surveyUrl = `${window.location.origin}/customer?survey=${surveyId}`;
+const surveyUrl = `${window.location.origin}/customer/${surveyId}`;
+
     navigator.clipboard.writeText(surveyUrl).then(() => {
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
@@ -193,11 +194,11 @@ const loadSurvey = async (id) => {
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    {survey.survey_name}
+                    {survey.surveyName}
                   </h2>
                   <div className="flex items-center space-x-4">
                     <span className="text-sm text-gray-600">
-                      Code: <span className="font-mono">{survey.survey_code}</span>
+                      Code: <span className="font-mono">{survey.surveyCode}</span>
                     </span>
                     <span
                       className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(
@@ -213,8 +214,8 @@ const loadSurvey = async (id) => {
               {/* Dates & Meta */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Category</h4>
-                  <p className="text-gray-600">{survey.category_name}</p>
+                  <h4 className="font-medium text-gray-900 mb-2">Survey Name</h4>
+                  <p className="text-gray-600">{survey.surveyName}</p>
                 </div>
 
                 {survey.target_concept && (
@@ -230,7 +231,7 @@ const loadSurvey = async (id) => {
                   <h4 className="font-medium text-gray-900 mb-2">Start Date</h4>
                   <p className="text-gray-600 flex items-center">
                     <Calendar className="w-4 h-4 mr-2" />
-                    {formatDate(survey.start_date)}
+                    {formatDate(survey.startDate)}
                   </p>
                 </div>
 
@@ -238,13 +239,13 @@ const loadSurvey = async (id) => {
                   <h4 className="font-medium text-gray-900 mb-2">End Date</h4>
                   <p className="text-gray-600 flex items-center">
                     <Calendar className="w-4 h-4 mr-2" />
-                    {formatDate(survey.end_date)}
+                    {formatDate(survey.endDate)}
                   </p>
                 </div>
 
                 <div>
                   <h4 className="font-medium text-gray-900 mb-2">Created</h4>
-                  <p className="text-gray-600">{formatDate(survey.created_at)}</p>
+                  <p className="text-gray-600">{formatDate(survey.createdDate)}</p>
                 </div>
               </div>
 

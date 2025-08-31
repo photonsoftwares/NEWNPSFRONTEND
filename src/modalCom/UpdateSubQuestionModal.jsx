@@ -22,20 +22,20 @@ const style = {
   p: 4,
 };
 
-export default function UpdateSubQuestionModal({ open, handleClose, subQuestion }) {
+export default function UpdateSubQuestionModal({ open, handleClose, subQuestion,fetchSubQuestions }) {
   const [formData, setFormData] = useState({
     questionId: "",
     subQuestion: "",
-    status: "Inactive",
+    status: "Active",
   });
-
+  console.log("subQuestion", subQuestion);
   // ✅ Autofill when subQuestion changes
   useEffect(() => {
     if (subQuestion) {
       setFormData({
         questionId: subQuestion.questionId || "",
         subQuestion: subQuestion.subQuestion || "",
-        status: subQuestion.status || "Inactive",
+        status: subQuestion.status || "Active",
       });
     }
   }, [subQuestion]);
@@ -52,11 +52,12 @@ export default function UpdateSubQuestionModal({ open, handleClose, subQuestion 
   // ✅ submit handler
   const handleSubmit = async () => {
     try {
-      const res = await DataService.updateSubQuestion(formData.questionId, formData);
+      const res = await DataService.updateSubQuestion(subQuestion?.subQuestionId, formData);
 
       if (res.data?.status === true) {
         Swal.fire("Success", "Sub-question updated successfully!", "success");
         handleClose();
+        fetchSubQuestions()
       } else {
         Swal.fire("Error", res.data?.message || "Update failed", "error");
       }
@@ -95,7 +96,7 @@ export default function UpdateSubQuestionModal({ open, handleClose, subQuestion 
         />
 
         {/* Status */}
-        <TextField
+        {/* <TextField
           select
           fullWidth
           label="Status"
@@ -106,7 +107,7 @@ export default function UpdateSubQuestionModal({ open, handleClose, subQuestion 
         >
           <MenuItem value="Active">Active</MenuItem>
           <MenuItem value="Inactive">Inactive</MenuItem>
-        </TextField>
+        </TextField> */}
 
         {/* Buttons */}
         <Box mt={3} display="flex" justifyContent="flex-end" gap={2}>

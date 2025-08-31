@@ -21,12 +21,13 @@ export default function SurveyList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 const { getAllSurveys, surveys } = useAuth();
+  const saasId = localStorage.getItem("saasId");
 
 useEffect(() => {
   const fetchSurveys = async () => {
     try {
       setLoading(true);
-      await getAllSurveys("6");
+      await getAllSurveys(saasId);
     } catch (error) {
       console.error("Error fetching surveys:", error);
     } finally {

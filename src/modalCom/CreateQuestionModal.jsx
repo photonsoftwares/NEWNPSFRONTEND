@@ -84,7 +84,7 @@ export default function CreateQuestionModal({
             </div>
 
             {/* Question Type */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Question Type *
               </label>
@@ -99,7 +99,7 @@ export default function CreateQuestionModal({
                 <option value="rating">Rating</option>
                 <option value="multi-choice">Multiple Choice</option>
               </select>
-            </div>
+            </div> */}
 
             {/* Weightage */}
             <div>
@@ -123,10 +123,10 @@ export default function CreateQuestionModal({
             </div>
 
             {/* Rating Scale (only if type=rating) */}
-            {newQuestion.type === "rating" && (
+         
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Rating Scale (e.g. 5 or 10)
+                  Level Scale (e.g. 5 or 10)
                 </label>
                 <input
                   type="number"
@@ -142,10 +142,10 @@ export default function CreateQuestionModal({
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />
               </div>
-            )}
+        
 
             {/* Options (only if type=multi-choice) */}
-            {newQuestion.type === "multi-choice" && (
+            {/* {newQuestion.type === "multi-choice" && (
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Options (comma separated)
@@ -163,7 +163,7 @@ export default function CreateQuestionModal({
                   placeholder="Option1, Option2, Option3"
                 />
               </div>
-            )}
+            )} */}
 
             {/* Target Concept */}
             <div>
