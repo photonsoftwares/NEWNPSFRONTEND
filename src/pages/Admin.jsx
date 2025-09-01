@@ -13,6 +13,7 @@ import {
   Star,
   ArrowRight
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthConext';
 
 export default function Admin() {
   const [stats, setStats] = useState({
@@ -21,6 +22,11 @@ export default function Admin() {
     totalResponses: 0,
     averageNPS: 0
   });
+    const {surveys,getAllSurveys} = useAuth();
+useEffect(() => {
+  getAllSurveys()
+
+}, []);
   const [recentSurveys, setRecentSurveys] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -153,14 +159,14 @@ export default function Admin() {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Link 
-            to="/admin/subQuestion/new"
+            to="/admin/users"
             className="group bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 hover:border-blue-200"
           >
             <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <Plus className="w-6 h-6 text-blue-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Create Sub Question</h3>
-            <p className="text-gray-600 text-sm">Manage survey Sub questions</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Create User</h3>
+            <p className="text-gray-600 text-sm">Manage users</p>
           </Link>
 
        
@@ -216,7 +222,7 @@ export default function Admin() {
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
             </div>
-          ) : recentSurveys.length === 0 ? (
+          ) : surveys?.length === 0 ? (
             <div className="text-center py-12">
               <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 text-lg font-medium">No surveys found</p>
@@ -249,11 +255,11 @@ export default function Admin() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {recentSurveys.map((survey) => (
+                  {surveys?.map((survey) => (
                     <tr key={survey.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{survey.survey_name}</div>
+                          <div className="text-sm font-medium text-gray-900">{survey.surveyName}</div>
                           <div className="text-sm text-gray-500">{survey.survey_code}</div>
                         </div>
                       </td>
@@ -265,7 +271,7 @@ export default function Admin() {
                       <td className="px-6 py-4">
                         <div className="flex items-center text-sm text-gray-600">
                           <Calendar className="w-4 h-4 mr-2" />
-                          {formatDate(survey.created_at)}
+                          {formatDate(survey.createdDate)}
                         </div>
                       </td>
                       <td className="px-6 py-4">

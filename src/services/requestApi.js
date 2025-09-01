@@ -10,6 +10,15 @@ class DataService {
   createSurvey(data) {
     return http.post("/survey/add", data);
   }
+  // category
+  createCategory(data) {
+    return http.post("/category/add", data);
+  }
+
+  updateCategory(id, data) {
+    return http.put(`/category/update-by-id/${id}`, data);
+  }
+
   getCategories(saasId) {
     return http.get(`/category/get-by-saasId/${saasId}`);
   }
@@ -33,10 +42,10 @@ class DataService {
   }
 
   // 📊 Get Feedback Results
-  getFeedbackResults(surveyId) {
-    return http.get(`/nps/feedback/results/${surveyId}`);
+  getFeedbackResults(formdate , todate,saasId) {
+    return http.get(`/feedback/${formdate}/${todate}/${saasId}`);
   }
-   SubQuestion(data) {
+   CreateQuestion(data) {
     return http.post("/Question/create", data);
   }
    getQuestion(saasId) {
@@ -71,9 +80,29 @@ class DataService {
   getSurveyById(surveyId) {
     return http.get(`/survey/get-by-id/${surveyId}`);
   }
-  getfeedbackSaaSId(saasId) {
-    return http.get(`/feedback/get-weekly-data/${saasId}`);
+  getfeedbackcountSaaSId(saasId, type) {
+    return http.get(`/feedback/get-count-data/${saasId}/${type}`);
   }
+ 
+  // users
+  createUser(data) {
+    return http.post("/user/create", data);
+  }
+
+  getUserById(userId) {
+    return http.get(`/users/${userId}`);
+  }
+ 
+  deleteUser(userId) {
+    return http.delete(`/user/delete/${userId}`);
+  }
+    getUsers(page,size,saasId) {
+    return http.get(`/user/all/${page}/${size}/${saasId}`);
+  }
+   updateUser(userId, data) {
+    return http.put(`/user/update/${userId}`, data);
+  }
+
 }
 
 export default new DataService();

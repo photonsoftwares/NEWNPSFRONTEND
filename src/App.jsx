@@ -12,6 +12,8 @@ import SubQuestionManager from "./pages/SubQuestionManager";
 import LoginPage from "./Login/LoginPage";
 import ProtectedRoute from "./ProtectedRoute";   // ✅ import
 import { useEffect, useState } from "react";
+import ManageUser from "./pages/ManageUser";
+import AllCategory from "./pages/AllCategory";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -103,7 +105,14 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-
+  <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute isLoggedIn={isLoggedIn}>
+              <ManageUser />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/admin/analytics"
           element={
@@ -114,10 +123,10 @@ export default function App() {
         />
 
         <Route
-          path="/analytics"
+          path="/admin/category/new"
           element={
             <ProtectedRoute isLoggedIn={isLoggedIn}>
-              <AnalyticsPage />
+              <AllCategory />
             </ProtectedRoute>
           }
         />

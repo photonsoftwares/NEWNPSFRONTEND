@@ -294,10 +294,10 @@ const handleSubmitFeedback = async () => {
           ) : (
             <div>
               <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                {/* <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Store className="w-8 h-8 text-white" />
                 </div>
-                <p className="text-gray-600">(Store Name)</p>
+                <p className="text-gray-600">(Store Name)</p> */}
               </div>
 
               <h2 className="text-xl font-bold mb-6 text-gray-900">Customer Details</h2>

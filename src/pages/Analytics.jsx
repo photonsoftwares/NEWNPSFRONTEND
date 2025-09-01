@@ -11,87 +11,68 @@ import {
   Calendar,
   MessageSquare
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { useAuth } from '../contexts/AuthConext';
 
 export default function Analytics() {
-  const [searchParams] = useSearchParams();
-  const surveyId = searchParams.get('survey');
-  
-  const [loading, setLoading] = useState(true);
-  const [selectedSurvey, setSelectedSurvey] = useState(surveyId || 'all');
-  const [surveys, setSurveys] = useState([]);
-  const [dateRange, setDateRange] = useState('7d');
+    const [loading, setLoading] = useState(true);
+  const [selectedSurvey, setSelectedSurvey] = useState("DAY"); // 👈 default daily
 
-  // Mock data - in real app this would come from API
-  const { getAllfeedbackweekly, feedbackweekly } = useAuth();
-
-  useEffect(() => {
-    getAllfeedbackweekly();
+  // component mount hote hi "daily" feedback call karega
+   useEffect(() => {
+    (async () => {
+      await getAllfeedbackCount("DAY");
+    })();
   }, []);
-  console.log(feedbackweekly,"feedbackweekly");
-  const mockStats = {
-    totalResponses: 1247,
-    averageRating: 8.3,
-    npsScore: 42,
-    responseRate: 78
-  };
 
-  const mockTrendData = [
-    { date: '2024-01-01', responses: 45, rating: 8.2, nps: 38 },
-    { date: '2024-01-02', responses: 52, rating: 8.4, nps: 41 },
-    { date: '2024-01-03', responses: 38, rating: 8.1, nps: 36 },
-    { date: '2024-01-04', responses: 67, rating: 8.6, nps: 45 },
-    { date: '2024-01-05', responses: 41, rating: 8.3, nps: 39 },
-    { date: '2024-01-06', responses: 58, rating: 8.5, nps: 43 },
-    { date: '2024-01-07', responses: 49, rating: 8.4, nps: 42 }
-  ];
+  const handleSurveyChange = async (e) => {
+    const value = e.target.value;
+    setSelectedSurvey(value);
 
-  const mockRatingDistribution = [
-    { rating: '1-2', count: 12, percentage: 1.0 },
-    { rating: '3-4', count: 34, percentage: 2.7 },
-    { rating: '5-6', count: 89, percentage: 7.1 },
-    { rating: '7-8', count: 456, percentage: 36.6 },
-    { rating: '9-10', count: 656, percentage: 52.6 }
-  ];
-
-  const mockNPSBreakdown = [
-    { name: 'Promoters', value: 656, color: '#10b981' },
-    { name: 'Passives', value: 456, color: '#f59e0b' },
-    { name: 'Detractors', value: 135, color: '#ef4444' }
-  ];
-
-  useEffect(() => {
-    loadAnalyticsData();
-  }, [selectedSurvey, dateRange]);
-
-  const loadAnalyticsData = async () => {
-    try {
-      setLoading(true);
-      
-      // Load surveys for dropdown
-      const surveysResponse = await fetch('/v2/surveymgmt/listsurvey/all');
-      if (surveysResponse.ok) {
-        const surveysData = await surveysResponse.json();
-        setSurveys(surveysData.data?.surveys || []);
-      }
-
-      // In real app, load actual analytics data here
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
-      
-    } catch (error) {
-      console.error('Error loading analytics:', error);
-    } finally {
-      setLoading(false);
+    if (value === "DAY") {
+      await getAllfeedbackCount("DAY");
+    } else if (value === "WEEK") {
+      await getAllfeedbackCount("WEEK");
+    } else if (value === "MONTH") {
+      await getAllfeedbackCount("MONTH");
+    } else if (value === "YEAR") {
+      await getAllfeedbackCount("YEAR");
+    } else {
+      // agar "ALL" hai toh default DAY call karenge
+      await getAllfeedbackCount("DAY");
     }
   };
+  // Mock data - in real app this would come from API
+  const {  getFeedbackbydate, feedbackByDate ,
+        getAllfeedbackCount,feedbackweekly
+  } = useAuth();
+  const getTodayDate = () => {
+  const today = new Date();
+  return today.toISOString().split("T")[0];
+};
+  const [fromDate, setFromDate] = useState(getTodayDate());
+  const [toDate, setToDate] = useState(getTodayDate());
+useEffect(() => {
+  if (fromDate && toDate) {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        await getFeedbackbydate(fromDate, toDate);
+      } catch (error) {
+        console.error("Error fetching feedback:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  };
+    fetchData();
+  }
+}, [fromDate, toDate]);
+
+  console.log(feedbackweekly, "feedbackweekly");
+
+
+
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -131,22 +112,23 @@ export default function Analytics() {
               <span className="text-sm font-medium text-gray-700">Filters:</span>
             </div>
             
-            <div>
-              <select 
-                value={selectedSurvey} 
-                onChange={(e) => setSelectedSurvey(e.target.value)}
-                className="border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              >
-                <option value="all">All feedback</option>
-                {surveys.map(survey => (
-                  <option key={survey.id} value={survey.id}>
-                    {survey.survey_name}
-                  </option>
-                ))}
-              </select>
-            </div>
+   <div>
+    <select
+      value={selectedSurvey}
+      onChange={handleSurveyChange}
+      className="border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+    >
+      <option value="all">All Feedback</option>
+      <option value="DAY">Daily Feedback</option>
+      <option value="WEEK">Weekly Feedback</option>
+      <option value="MONTH">Monthly Feedback</option>
+      <option value="YEAR">Yearly Feedback</option>
 
-            <div className="flex items-center space-x-2">
+    </select>
+</div>
+
+
+            {/* <div className="flex items-center space-x-2">
               <Calendar className="w-4 h-4 text-gray-500" />
               <select 
                 value={dateRange} 
@@ -158,15 +140,31 @@ export default function Analytics() {
                 <option value="90d">Last 90 days</option>
                 <option value="1y">Last year</option>
               </select>
-            </div>
+            </div> */}
+
+  {/* From Date */}
+    <div className="flex flex-col mb-6">
+      <label className="text-sm text-gray-600 mb-1">From Date:</label>
+      <input
+        type="date"
+        className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+        onChange={(e) => setFromDate(e.target.value || null)}
+      />
+    </div>
+
+    {/* To Date */}
+    <div className="flex flex-col mb-6">
+      <label className="text-sm text-gray-600 mb-1">To Date:</label>
+      <input
+        type="date"
+        className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+        onChange={(e) => setToDate(e.target.value || null)}
+      />
+    </div>
           </div>
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-          </div>
-        ) : (
+      
           <>
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -223,148 +221,62 @@ export default function Analytics() {
               </div>
             </div>
 
-            {/* Charts Row 1 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              {/* Response Trends */}
-              <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Response Trends</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={mockTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis 
-                      dataKey="date" 
-                      tickFormatter={formatDate}
-                      stroke="#6b7280"
-                    />
-                    <YAxis stroke="#6b7280" />
-                    <Tooltip 
-                      labelFormatter={(value) => formatDate(value)}
-                      contentStyle={{
-                        backgroundColor: 'white',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '12px',
-                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-                      }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="responses" 
-                      stroke="#3b82f6" 
-                      strokeWidth={3}
-                      dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+         {/* Feedback By Date Table */}
+{fromDate && toDate && (
+  <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 mt-6">
+    <h2 className="text-lg font-semibold text-gray-900 mb-4">Feedback by Date</h2>
 
-              {/* Rating Distribution */}
-              <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Rating Distribution</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={mockRatingDistribution}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="rating" stroke="#6b7280" />
-                    <YAxis stroke="#6b7280" />
-                    <Tooltip 
-                      contentStyle={{
-                        backgroundColor: 'white',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '12px',
-                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-                      }}
-                    />
-                    <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+    {loading ? (
+      // 👇 Loading spinner
+      <div className="flex items-center justify-center py-10">
+        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+      </div>
+    ) : feedbackByDate && feedbackByDate.length > 0 ? (
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left text-gray-700">
+          <thead className="bg-gray-50 border-b">
+            <tr>
+              <th className="px-4 py-3">ID</th>
+              <th className="px-4 py-3">Message</th>
+              <th className="px-4 py-3">Question</th>
+              <th className="px-4 py-3">Sub Question</th>
+              <th className="px-4 py-3">Rating</th>
+              <th className="px-4 py-3">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {feedbackByDate.map((fb) => (
+              <tr key={fb.id} className="hover:bg-gray-50 border-b">
+                <td className="px-4 py-3">{fb.id}</td>
+                <td className="px-4 py-3">{fb.message || "-"}</td>
+                <td className="px-4 py-3">{fb.question || "-"}</td>
+                <td className="px-4 py-3">{fb.subQuestion || "-"}</td>
+                <td className="px-4 py-3 font-semibold">{fb.ratingLevel}</td>
+                <td className="px-4 py-3">
+                  {new Date(fb.feedbackDate).toLocaleString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      // 👇 No data found
+      <div className="text-center text-gray-500 py-10">
+        No feedback available for the selected date range.
+      </div>
+    )}
+  </div>
+)}
 
-            {/* Charts Row 2 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* NPS Breakdown */}
-              <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">NPS Breakdown</h3>
-                <div className="flex items-center justify-center">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={mockNPSBreakdown}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, value, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {mockNPSBreakdown.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{
-                          backgroundColor: 'white',
-                          border: '1px solid #e5e7eb',
-                          borderRadius: '12px',
-                          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-4 space-y-2">
-                  {mockNPSBreakdown.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div 
-                          className="w-3 h-3 rounded-full mr-2"
-                          style={{ backgroundColor: item.color }}
-                        ></div>
-                        <span className="text-sm text-gray-600">{item.name}</span>
-                      </div>
-                      <span className="text-sm font-medium text-gray-900">{item.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Average Rating Trend */}
-              <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Average Rating Trend</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={mockTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis 
-                      dataKey="date" 
-                      tickFormatter={formatDate}
-                      stroke="#6b7280"
-                    />
-                    <YAxis 
-                      domain={[7, 9]} 
-                      stroke="#6b7280"
-                    />
-                    <Tooltip 
-                      labelFormatter={(value) => formatDate(value)}
-                      contentStyle={{
-                        backgroundColor: 'white',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '12px',
-                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-                      }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="rating" 
-                      stroke="#10b981" 
-                      strokeWidth={3}
-                      dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
           </>
-        )}
+        
       </div>
     </div>
   );

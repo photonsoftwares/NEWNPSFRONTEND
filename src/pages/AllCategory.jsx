@@ -16,106 +16,48 @@ import DataService from "../services/requestApi";
 import Swal from 'sweetalert2';
 import CreateQuestionModal from '../modalCom/CreateQuestionModal';
 import UpdateQuestionModal from '../modalCom/UpdateQuestionModal';
+import CreateCategoryModal from '../modalCom/CreateCategoryModal';
+import UpdateCategoryModal from '../modalCom/UpdateCategoryModal';
 
-export default function ManageQuestions() {
-  const [questions, setQuestions] = useState([]);
+export default function AllCategory() {
+
   // const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState(0);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [open, setOpen] = useState(false);
-const {getCategories,categories} = useAuth();
+  const [openUpdate, setOpenUpdate] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const { getCategories, categories } = useAuth();
   const saasId = localStorage.getItem("saasId");
 
-const [newQuestion, setNewQuestion] = useState({
-  question: '',
-  saasId: saasId,
-  question_code: '',
-  category_id: 0,
-  weightage: 1.0,
-  target_concept: '',
-  user_category: '',
-  // language: 'EN',
-  // type: 'text',        // NEW field
-  level: 5,    
-  status: "Active",        // for rating
-  // options: ''      
-});
+
 
 
   useEffect(() => {
-    getCategories();
+    const fetchCategories = async () => {
+      setLoading(true);
+      await getCategories();
+      setLoading(false);
+    };
+
+    fetchCategories();
   }, []);
 
-  useEffect(() => {
-    if (categories.length > 0) {
-      loadQuestions();
-    }
-  }, [categories, selectedCategory]);
 
 
 
-  const loadQuestions = async () => {
-    try {
-      setLoading(true);
-      // Load questions from all categories or specific category
-      // const categoryId = selectedCategory || categories[0]?.id;
-      // if (!categoryId) return;
 
-      // const response = await fetch(`/v2/surveymgmt/listquestions/${categoryId}/all`);
-       const response = await DataService.getQuestion(saasId);
-      if (response && response.status === 200 && response.data.status) {
-      // set data from API
-      setQuestions(response.data.data || []);
-      }
-    } catch (error) {
-      console.error('Error loading questions:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+ 
 
-  const handleCreateQuestion = async () => {
-    try {
-      if (!newQuestion.question || !newQuestion.question_code || !newQuestion.category_id) {
-        return;
-      }
 
-      // const response = await fetch('/v2/surveymgmt/createquestions', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     ...newQuestion,
-      //     created_by: 'admin'
-      //   })
-      // });
-  const response = await DataService.CreateQuestion({
-      ...newQuestion,
-      created_by: "admin",
-    });
-    if (response && response.status === 200) {
-        setShowCreateModal(false);
-        setNewQuestion({
-          question_name: '',
-          question_code: '',
-          category_id: 0,
-          weightage: 1.0,
-          target_concept: '',
-          user_category: '',
-          language: 'EN'
-        });
-        loadQuestions();
-      }
-    } catch (error) {
-      console.error('Error creating question:', error);
-    }
-  };
+const filteredQuestions = categories?.filter((question) => {
+  const search = searchTerm.toLowerCase();
+  return (
+    question?.id?.toString().toLowerCase().includes(search) || // convert id to string safely
+    question?.categoryName?.toLowerCase().includes(search)    // make case-insensitive
+  );
+});
 
-const filteredQuestions = questions?.filter((question) => 
-  question?.question?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  question?.questionId?.toString().includes(searchTerm.toLowerCase())
-);
 
  const [selectedQuestion, setSelectedQuestion] = useState(null);
   const getStatusColor = (status) => {
@@ -145,7 +87,7 @@ const handleDelete = async (id) => {
 
       if (response && response.status === 200) {
         Swal.fire("Deleted!", "Your question has been deleted.", "success");
-        loadQuestions(); // refresh table
+      // refresh table
       } else {
         Swal.fire("Failed!", "Something went wrong.", "error");
       }
@@ -155,7 +97,7 @@ const handleDelete = async (id) => {
     Swal.fire("Error!", "Unable to delete the question.", "error");
   }
 };
-const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -172,18 +114,12 @@ const navigate = useNavigate();
                   <MessageSquare className="w-6 h-6 text-white" />
                 </div>
                 <div className="ml-4">
-                  <h1 className="text-2xl font-bold text-gray-900">Manage Questions</h1>
-                  <p className="text-gray-600">Create and organize survey questions</p>
+                  <h1 className="text-2xl font-bold text-gray-900">Manage Category</h1>
+                  <p className="text-gray-600">Create and organize survey categories</p>
                 </div>
               </div>
             </div>
-            <button
-              onClick={() => navigate("/admin/subQuestion/new")}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center"
-            >
-              <Plus className="mr-2 w-5 h-5" />
-              Sub Question
-            </button>
+         
           </div>
         </div>
       </div>
@@ -192,29 +128,7 @@ const navigate = useNavigate();
         {/* Filters */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
           <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center space-x-2">
-              {/* 🔹 Add Category Button */}
-  <button
-    onClick={() => navigate("/admin/category/new")}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center"
-
-  >
-    <Plus className="mr-2 w-5 h-5" />
-    Add Category
-  </button>
-              <select 
-                value={selectedCategory} 
-                onChange={(e) => setSelectedCategory(parseInt(e.target.value))}
-                className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-              >
-                <option value={0}>All Categories</option>
-                {categories.map(category => (
-                      <option key={category.id} value={category.id}>
-                        {category.categoryName}
-                      </option>
-                    ))}
-              </select>
-            </div>
+           
             
             <div className="flex-1 min-w-64">
               <div className="relative">
@@ -233,7 +147,7 @@ const navigate = useNavigate();
               className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center"
             >
               <Plus className="mr-2 w-5 h-5" />
-              New Question
+              New Category
             </button>
           
             
@@ -243,7 +157,7 @@ const navigate = useNavigate();
         {/* Questions Table */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Questions</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Category</h2>
           </div>
           
           {loading ? (
@@ -256,17 +170,9 @@ const navigate = useNavigate();
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Question
+                      Category
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      level
-                    </th>
-                    {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                     Survey Id
-                    </th> */}
-                    {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Weightage
-                    </th> */}
+                  
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
@@ -293,27 +199,14 @@ const navigate = useNavigate();
                     </tr>
                   ) : (
                     filteredQuestions?.map((question) => (
-                      <tr key={question.questionId} className="hover:bg-gray-50 transition-colors">
+                      <tr key={question.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="text-sm font-medium text-gray-900 max-w-xs truncate">
-                            {question.question}
+                            {question.categoryName}
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <span className="text-sm text-gray-600 font-mono">
-                            {question.level}
-                          </span>
-                        </td>
-                        {/* <td className="px-6 py-4">
-                          <span className="text-sm text-gray-900">
-                            {question.surveyId}
-                          </span>
-                        </td> */}
-                        {/* <td className="px-6 py-4">
-                          <span className="text-sm text-gray-600">
-                            {question.weightage}
-                          </span>
-                        </td> */}
+                      
+                     
                         <td className="px-6 py-4">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(question.status)}`}>
                             {question.status}
@@ -321,12 +214,15 @@ const navigate = useNavigate();
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-3">
-                            <button       onClick={() => {
-                                setSelectedQuestion(question); // ✅ store row
-                                setOpen(true);
-                              }}  className="text-blue-600 hover:text-blue-700 transition-colors">
-                              <Edit className="w-4 h-4" />
-                            </button>
+                       <button
+  onClick={() => {
+    setSelectedCategory(question);
+    setOpenUpdate(true);
+  }}
+  className="text-blue-600 hover:text-blue-700 transition-colors"
+>
+  <Edit className="w-4 h-4" />
+</button>
                             <button     onClick={() => handleDelete(question.questionId)} className="text-red-600 hover:text-red-700 transition-colors">
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -343,22 +239,22 @@ const navigate = useNavigate();
       </div>
 
       {/* Create Question Modal */}
-    {showCreateModal && (
-  <CreateQuestionModal
-    newQuestion={newQuestion}
-    setNewQuestion={setNewQuestion}
-    categories={categories}
+  {showCreateModal && (
+  <CreateCategoryModal
+    saasId={saasId}
     onClose={() => setShowCreateModal(false)}
-    onSave={handleCreateQuestion}
-    loadQuestions={loadQuestions}
+    onSave={getCategories} // refresh after save
   />
 )}
-   <UpdateQuestionModal
-        open={open}
-        handleClose={() => setOpen(false)}
-          question={selectedQuestion}
-          loadQuestions={loadQuestions}
-      />
+
+{openUpdate && selectedCategory && (
+  <UpdateCategoryModal
+    open={openUpdate}
+    handleClose={() => setOpenUpdate(false)}
+    category={selectedCategory}
+    onUpdated={getCategories} // refresh categories after update
+  />
+)}
     </div>
   );
 }

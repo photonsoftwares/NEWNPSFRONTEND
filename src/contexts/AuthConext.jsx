@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
   const [surveys, setSurveys] = useState([]);
-  const getAllSurveys = async (saasId) => {
+  const getAllSurveys = async () => {
     try {
       const res = await DataService.getSurveys(saasId);
       setSurveys(res.data?.data || []);
@@ -114,10 +114,21 @@ export const AuthProvider = ({ children }) => {
   };
 
     const [feedbackweekly, setFeedbackWeekly] = useState(null);
-   const getAllfeedbackweekly = async () => {
+   const getAllfeedbackCount = async (type) => {
     try {
-      const res = await DataService.getfeedbackSaaSId(saasId);
+      const res = await DataService.getfeedbackcountSaaSId( saasId,type);
       setFeedbackWeekly(res.data?.data || null);
+      return res.data;
+    } catch (err) {
+      console.error("Error loading questions", err);
+    }
+  };
+
+     const [feedbackByDate, setFeedbackByDate] = useState(null);
+   const getFeedbackbydate = async (feedbackStartDate, feedbackEndDate) => {
+    try {
+      const res = await DataService.getFeedbackResults(feedbackStartDate, feedbackEndDate, saasId);
+      setFeedbackByDate(res.data?.data || null);
       return res.data;
     } catch (err) {
       console.error("Error loading questions", err);
@@ -126,7 +137,9 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider
       value={{
-        getAllfeedbackweekly,
+        getFeedbackbydate,
+        getAllfeedbackCount,
+        feedbackByDate,
         feedbackweekly,
         surveyDetails,
         getQuestionbyLevel,
