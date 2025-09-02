@@ -172,7 +172,7 @@ const surveyUrl = `${window.location.origin}/customer/${surveyId}`;
                 Edit Survey
               </Link>
               <Link
-                to={`/customer?survey=${surveyId}`}
+                to={`/customer/${surveyId}`}
                 target="_blank"
                 className="flex items-center bg-green-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-green-700 transition-colors"
               >

@@ -16,11 +16,13 @@ import { useAuth } from '../contexts/AuthConext';
 export default function Analytics() {
     const [loading, setLoading] = useState(true);
   const [selectedSurvey, setSelectedSurvey] = useState("DAY"); // 👈 default daily
-
+  const {  getFeedbackbydate, feedbackByDate ,
+        fetchFeedbackCount,feedbackweekly
+  } = useAuth();
   // component mount hote hi "daily" feedback call karega
    useEffect(() => {
     (async () => {
-      await getAllfeedbackCount("DAY");
+      await fetchFeedbackCount("DAY");
     })();
   }, []);
 
@@ -29,22 +31,20 @@ export default function Analytics() {
     setSelectedSurvey(value);
 
     if (value === "DAY") {
-      await getAllfeedbackCount("DAY");
+      await fetchFeedbackCount("DAY");
     } else if (value === "WEEK") {
-      await getAllfeedbackCount("WEEK");
+      await fetchFeedbackCount("WEEK");
     } else if (value === "MONTH") {
-      await getAllfeedbackCount("MONTH");
+      await fetchFeedbackCount("MONTH");
     } else if (value === "YEAR") {
-      await getAllfeedbackCount("YEAR");
+      await fetchFeedbackCount("YEAR");
     } else {
       // agar "ALL" hai toh default DAY call karenge
-      await getAllfeedbackCount("DAY");
+      await fetchFeedbackCount("DAY");
     }
   };
   // Mock data - in real app this would come from API
-  const {  getFeedbackbydate, feedbackByDate ,
-        getAllfeedbackCount,feedbackweekly
-  } = useAuth();
+
   const getTodayDate = () => {
   const today = new Date();
   return today.toISOString().split("T")[0];

@@ -114,9 +114,9 @@ export const AuthProvider = ({ children }) => {
   };
 
     const [feedbackweekly, setFeedbackWeekly] = useState(null);
-   const getAllfeedbackCount = async (type) => {
+   const fetchFeedbackCount = async (type) => {
     try {
-      const res = await DataService.getfeedbackcountSaaSId( saasId,type);
+      const res = await DataService.getAllbackcount( saasId,type);
       setFeedbackWeekly(res.data?.data || null);
       return res.data;
     } catch (err) {
@@ -138,7 +138,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         getFeedbackbydate,
-        getAllfeedbackCount,
+        fetchFeedbackCount,
         feedbackByDate,
         feedbackweekly,
         surveyDetails,

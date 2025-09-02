@@ -80,7 +80,10 @@ class DataService {
   getSurveyById(surveyId) {
     return http.get(`/survey/get-by-id/${surveyId}`);
   }
-  getfeedbackcountSaaSId(saasId, type) {
+  SurveyupdateById(surveyId, data) {
+    return http.put(`/survey/update-by-id/${surveyId}`, data);
+  }
+  getAllbackcount(saasId, type) {
     return http.get(`/feedback/get-count-data/${saasId}/${type}`);
   }
  

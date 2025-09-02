@@ -14,6 +14,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthConext';
+import LogoutButton from '../modalCom/LogoutButton';
 
 export default function Admin() {
   const [stats, setStats] = useState({
@@ -89,13 +90,7 @@ useEffect(() => {
               <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
               <p className="text-gray-600 mt-1">Manage surveys, questions, and analyze feedback</p>
             </div>
-            <Link 
-              to="/admin/surveys/new"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center"
-            >
-              <Plus className="mr-2 w-5 h-5" />
-              New Survey
-            </Link>
+            <LogoutButton />
           </div>
         </div>
       </div>

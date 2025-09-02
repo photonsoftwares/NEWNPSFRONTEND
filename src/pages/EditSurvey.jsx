@@ -11,6 +11,9 @@ import {
   Plus,
   Trash2
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthConext';
+import DataService from "../services/requestApi";
+import Swal from 'sweetalert2';
 
 export default function EditSurvey() {
   const { surveyId } = useParams();
@@ -20,20 +23,28 @@ export default function EditSurvey() {
   const [categories, setCategories] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
+const {getSurveyById,surveyDetails} = useAuth();
+  
   const [surveyData, setSurveyData] = useState({
-    survey_name: '',
-    survey_code: '',
-    category_id: '',
-    description: '',
-    short_description: '',
-    target_concept: '',
+    survey_name: surveyDetails?.surveyName,
+    survey_code: surveyDetails?.surveyCode,
+    category_id: surveyDetails?.categoryId,
+    description: surveyDetails?.description,
+    short_description: surveyDetails?.shortDescription,
+    target_concept: surveyDetails?.targetConcept,
     start_date: '',
     end_date: '',
     status: 'Active'
   });
-
   useEffect(() => {
-    loadSurveyData();
+    // loadSurveyData();
+    if (surveyId) {
+      setLoading(true);
+      getSurveyById(surveyId).finally(() => {
+        setLoading(false);
+      });
+    }
+
     loadCategories();
   }, [surveyId]);
 
@@ -43,42 +54,7 @@ export default function EditSurvey() {
     }
   }, [surveyData.category_id]);
 
-  const loadSurveyData = async () => {
-    try {
-      setLoading(true);
-      
-      // Load survey details
-      const surveyResponse = await fetch(`/v2/surveymgmt/listsurvey/${surveyId}`);
-      if (surveyResponse.ok) {
-        const surveyResult = await surveyResponse.json();
-        const survey = surveyResult.data;
-        
-        setSurveyData({
-          survey_name: survey.survey_name || '',
-          survey_code: survey.survey_code || '',
-          category_id: survey.category_id || '',
-          description: survey.description || '',
-          short_description: survey.short_description || '',
-          target_concept: survey.target_concept || '',
-          start_date: survey.start_date ? survey.start_date.split('T')[0] : '',
-          end_date: survey.end_date ? survey.end_date.split('T')[0] : '',
-          status: survey.status || 'Active'
-        });
-      }
 
-      // Load current questions for this survey
-      const questionsResponse = await fetch(`/v2/question/getquestions/${surveyId}`);
-      if (questionsResponse.ok) {
-        const questionsResult = await questionsResponse.json();
-        const currentQuestions = questionsResult.data?.questions || [];
-        setSelectedQuestions(currentQuestions.map(q => q.id));
-      }
-    } catch (error) {
-      console.error('Error loading survey data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const loadCategories = async () => {
     try {
@@ -118,57 +94,83 @@ export default function EditSurvey() {
         : [...prev, questionId]
     );
   };
+useEffect(() => {
+  if (surveyDetails) {
+    setSurveyData({
+      survey_name: surveyDetails.surveyName || "",
+      survey_code: surveyDetails.surveyCode || "",
+      category_id: surveyDetails.categoryId || "",
+      description: surveyDetails.description || "",
+      short_description: surveyDetails.shortDescription || "",
+      target_concept: surveyDetails.targetConcept || "",
+      start_date: surveyDetails.startDate ? surveyDetails.startDate.split("T")[0] : "",
+      end_date: surveyDetails.endDate ? surveyDetails.endDate.split("T")[0] : "",
+      status: surveyDetails.status || "Active"
+    });
+  }
+}, [surveyDetails]);
 
   const saveSurvey = async () => {
     try {
       setSaving(true);
 
       // Update survey details
-      const updatePayload = {
-        survey_name: surveyData.survey_name,
-        survey_code: surveyData.survey_code,
-        category_id: parseInt(surveyData.category_id),
-        description: surveyData.description,
-        short_description: surveyData.short_description,
-        target_concept: surveyData.target_concept,
-        start_date: surveyData.start_date || null,
-        end_date: surveyData.end_date || null,
-        status: surveyData.status
-      };
+  const updatePayload = {
+  id: parseInt(surveyId), // ya API se jo ID mil rahi hai
+  saasId: surveyDetails?.saasId || "", 
+  surveyCode: surveyData.survey_code,
+  surveyName: surveyData.survey_name,
+  description: surveyData.description,
+  startDate: surveyData.start_date ? new Date(surveyData.start_date).toISOString() : null,
+  endDate: surveyData.end_date ? new Date(surveyData.end_date).toISOString() : null,
+  status: surveyData.status,
+  createdDate: surveyDetails?.createdDate || null,
+  createdBy: surveyDetails?.createdBy || "admin",
+  categoryId: parseInt(surveyData.category_id),
+  shortDescription: surveyData.short_description,
+  targetConcept: surveyData.target_concept,
+  modifiedDate: new Date().toISOString()
+};
 
-      const updateResponse = await fetch(`/v2/surveymgmt/updatesurvey/${surveyId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatePayload)
-      });
 
-      if (!updateResponse.ok) {
-        throw new Error('Failed to update survey');
-      }
+      const updateResponse = await DataService.SurveyupdateById(surveyId, updatePayload);
+     
 
       // Update question mappings
       // First, remove all existing mappings (in a real app, you'd have a more sophisticated approach)
       // Then add new mappings for selected questions
-      if (selectedQuestions.length > 0) {
-        const mappingPromises = selectedQuestions.map(questionId =>
-          fetch('/v2/surveymgmt/mapquestions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              survey_id: parseInt(surveyId),
-              question_id: questionId
-            })
-          })
-        );
+      // if (selectedQuestions.length > 0) {
+      //   const mappingPromises = selectedQuestions.map(questionId =>
+      //     fetch('/v2/surveymgmt/mapquestions', {
+      //       method: 'POST',
+      //       headers: { 'Content-Type': 'application/json' },
+      //       body: JSON.stringify({
+      //         survey_id: parseInt(surveyId),
+      //         question_id: questionId
+      //       })
+      //     })
+      //   );
 
-        await Promise.all(mappingPromises);
-      }
+      //   await Promise.all(mappingPromises);
+      // }
 
       // Success - redirect to survey view
-      navigate(`/admin/surveys/view/${surveyId}`);
+      if (updateResponse && updateResponse.status === 200) {
+        // Optionally show a success message
+        Swal.fire({
+          icon: 'success',
+          title: 'Survey Updated',
+          text: 'The survey has been updated successfully.',
+        });
+        navigate(`/admin/surveys/view/${surveyId}`);
+      }
     } catch (error) {
       console.error('Error updating survey:', error);
-      alert('Failed to update survey. Please try again.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Update Failed',
+        text: 'Failed to update survey. Please try again.',
+      });
     } finally {
       setSaving(false);
     }
@@ -229,7 +231,7 @@ export default function EditSurvey() {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
           {/* Survey Information */}
           <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
             <div className="flex items-center mb-6">
@@ -238,6 +240,7 @@ export default function EditSurvey() {
             </div>
 
             <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Survey Name *
@@ -264,7 +267,7 @@ export default function EditSurvey() {
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Category *
                 </label>
@@ -280,22 +283,9 @@ export default function EditSurvey() {
                     </option>
                   ))}
                 </select>
-              </div>
+              </div> */}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Status
-                </label>
-                <select
-                  value={surveyData.status}
-                  onChange={(e) => handleInputChange('status', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                  <option value="Draft">Draft</option>
-                </select>
-              </div>
+           
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -310,7 +300,7 @@ export default function EditSurvey() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+          
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Start Date
@@ -334,20 +324,8 @@ export default function EditSurvey() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
-                </label>
-                <textarea
-                  value={surveyData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                  placeholder="Detailed description of the survey"
-                />
-              </div>
+            
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -361,11 +339,43 @@ export default function EditSurvey() {
                   placeholder="Brief description for display"
                 />
               </div>
+  <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={surveyData.description}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                  placeholder="Detailed description of the survey"
+                />
+              </div>
+              </div>
+  <div className="mt-8 ">
+          <button
+            onClick={saveSurvey}
+            // disabled={!canSave() || saving}
+            className="w-full bg-green-600 text-white px-6 py-4 rounded-xl font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+          >
+            {saving ? (
+              <>
+                <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 w-5 h-5" />
+                Save Changes
+              </>
+            )}
+          </button>
+        </div>
             </div>
           </div>
 
           {/* Questions */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+          {/* <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center">
                 <MessageSquare className="w-6 h-6 text-blue-600 mr-3" />
@@ -419,29 +429,11 @@ export default function EditSurvey() {
                 ))}
               </div>
             )}
-          </div>
+          </div> */}
         </div>
 
         {/* Save Button (Mobile) */}
-        <div className="mt-8 lg:hidden">
-          <button
-            onClick={saveSurvey}
-            disabled={!canSave() || saving}
-            className="w-full bg-green-600 text-white px-6 py-4 rounded-xl font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-          >
-            {saving ? (
-              <>
-                <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 w-5 h-5" />
-                Save Changes
-              </>
-            )}
-          </button>
-        </div>
+      
       </div>
     </div>
   );
